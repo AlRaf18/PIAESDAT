@@ -16,15 +16,33 @@ typedef struct node
     int password;
     char nombre[20];
     struct node *next;
-}usuario;
+} usuario;
+
+struct contacto
+{
+    char nombre[20];
+    int idCurrentUser;
+    int idUsuarioContacto;
+    struct contacto *next;
+};
 
 int validarLogin();
 int registro();
 void leerPassword(char password[]);
 void insert_at_begin(int id, int password, char nombre[20]);
 void setCurrentUser(int id);
+void contactos();
+void mensajes();
+void notificaciones();
+void cerrarsesion();
+void anadirContacto();
+void eliminarContacto();
+void verSolicitudes();
+void verConversaciones();
+void enviarMensaje();
 
 struct node *start = NULL;
+
 int count = 0;
 char current_user_name[20];
 int current_user_id;
@@ -33,12 +51,14 @@ int main()
 {
     int IDusr = 0;
     int resp;
-    while(IDusr == 0)
+    int salir = 0;
+    while(IDusr == 0 && salir == 0)
     {
         system("cls");
         printf(ANSI_COLOR_CYAN     "-- Bienvenido --"     ANSI_COLOR_RESET "\n");
         printf(" 1.- Iniciar sesion\n");
         printf(" 2.- Registrarse\n");
+        printf(" 3.- Salir\n");
         scanf("%d", &resp);
         if(resp == 1)
         {
@@ -49,22 +69,54 @@ int main()
             registro();
             system("pause");
         }
+        else if(resp == 3 )
+        {
+            salir = 1;
+            printf(ANSI_COLOR_MAGENTA     "Hasta la proxima!"     ANSI_COLOR_RESET "\n");
+            getch();
+        }
         else
         {
-            printf("Seleccione una opcion valida");
+            printf(ANSI_COLOR_RED     "Seleccione una opcion valida"     ANSI_COLOR_RESET "\n");
         }
-    }
-    if(IDusr != 0)
-    {
-        system("cls");
-        setCurrentUser(IDusr);
-        printf(ANSI_COLOR_CYAN "Bienvenido %s", current_user_name);
-        printf(ANSI_COLOR_RESET);
-        /* TOOOOODOOOO EL CODIGO DE FUNCIONAMIENTO AQUI */
+        while(IDusr != 0)
+        {
+            system("cls");
+            setCurrentUser(IDusr);
+            printf(ANSI_COLOR_CYAN "Bienvenido %s\n", current_user_name);
+            printf(ANSI_COLOR_RESET);
 
+            printf("1.- Contactos\n");
+            printf("2.- Mensajes\n");
+            printf("3.- Notificaciones\n");
+            printf("4.- Cerrar sesion\n");
+            scanf("%d", &resp);
+            if(resp == 1)
+            {
+                contactos();
+            }
+            else if(resp == 2)
+            {
+                mensajes();
+            }
+            else if(resp == 3)
+            {
+                notificaciones();
+            }
+            else if(resp == 4)
+            {
+                cerrarsesion();
+                IDusr = 0;
+            }
+            else
+            {
+                printf(ANSI_COLOR_RED     "Seleccione una opcion valida"     ANSI_COLOR_RESET "\n");
+            }
+        }
     }
 }
 
+/* ------------------------------ FUNCIONES PARA LOGIN ----------------------------------------------- */
 int validarLogin()
 {
     system("cls");
@@ -138,6 +190,8 @@ int registro()
     printf("password: ");
     scanf("%d",&password);
     insert_at_begin(idTrabajador, password, nombre);
+    struct contacto *start = NULL;
+
     return idTrabajador;
 }
 
@@ -184,12 +238,14 @@ void insert_at_begin(int id, int password, char nombre[20])
 }
 
 
-void setCurrentUser(int id){
+void setCurrentUser(int id)
+{
     struct node *t;
     t = start;
     while (t->next != NULL)
     {
-        if(t->idUsuario == id){
+        if(t->idUsuario == id)
+        {
             strcpy(current_user_name,t->nombre);
             current_user_id = t->idUsuario;
         }
@@ -197,4 +253,98 @@ void setCurrentUser(int id){
     }
 }
 
+/* ------------------------------ FUNCIONES PRINCIPALES ----------------------------------------------- */
 
+void contactos()
+{
+    int volver = 0;
+    do
+    {
+        system("cls");
+        printf(ANSI_COLOR_CYAN     "-- Contactos --"     ANSI_COLOR_RESET "\n");
+        int resp;
+        printf("1.- Anadir\n");
+        printf("2.- Eliminar\n");
+        printf("3.- Solicitudes\n");
+        printf("4.- Volver\n");
+        scanf("%d", &resp);
+        if(resp == 1)
+        {
+            anadirContacto();
+        }
+        else if(resp == 2)
+        {
+            eliminarContacto();
+        }
+        else if(resp == 3)
+        {
+            verSolicitudes();
+        }
+        else if(resp == 4)
+        {
+            volver = 1;
+        }
+        else
+        {
+            printf(ANSI_COLOR_RED     "Seleccione una opcion valida"     ANSI_COLOR_RESET "\n");
+        }
+    }
+    while(volver == 0);
+}
+void mensajes()
+{
+    int volver = 0;
+    do
+    {
+        system("cls");
+        printf(ANSI_COLOR_CYAN     "-- Mensajes --"     ANSI_COLOR_RESET "\n");
+        int resp;
+        printf("1.- Enviar\n");
+        printf("2.- Conversaciones\n");
+        printf("3.- Volver\n");
+        scanf("%d", &resp);
+        if(resp == 1)
+        {
+            enviarMensaje();
+        }
+        else if(resp == 2)
+        {
+            verConversaciones();
+        }
+        else if(resp == 3)
+        {
+            volver = 1;
+        }
+        else
+        {
+            printf(ANSI_COLOR_RED     "Seleccione una opcion valida"     ANSI_COLOR_RESET "\n");
+        }
+    }
+    while(volver == 0);
+}
+void notificaciones()
+{
+}
+void cerrarsesion()
+{
+    current_user_name[20] = NULL;
+    current_user_id = NULL;
+}
+
+/* --------------------------------------- SUBFUNCIONES ----------------------------------------------- */
+
+void anadirContacto()
+{
+}
+void eliminarContacto()
+{
+}
+void verSolicitudes()
+{
+}
+void verConversaciones()
+{
+}
+void enviarMensaje()
+{
+}
