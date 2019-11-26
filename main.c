@@ -78,6 +78,7 @@ int main()
         else
         {
             printf(ANSI_COLOR_RED     "Seleccione una opcion valida"     ANSI_COLOR_RESET "\n");
+            getch();
         }
         while(IDusr != 0)
         {
@@ -111,6 +112,7 @@ int main()
             else
             {
                 printf(ANSI_COLOR_RED     "Seleccione una opcion valida"     ANSI_COLOR_RESET "\n");
+                getch();
             }
         }
     }
@@ -131,7 +133,7 @@ int validarLogin()
     if (t == NULL)
     {
         printf(ANSI_COLOR_RED     "Aun no hay usuarios."     ANSI_COLOR_RESET "\n");
-        system("pause");
+        getch();
         return 0;
     }
 
@@ -287,6 +289,7 @@ void contactos()
         else
         {
             printf(ANSI_COLOR_RED     "Seleccione una opcion valida"     ANSI_COLOR_RESET "\n");
+            getch();
         }
     }
     while(volver == 0);
@@ -318,6 +321,7 @@ void mensajes()
         else
         {
             printf(ANSI_COLOR_RED     "Seleccione una opcion valida"     ANSI_COLOR_RESET "\n");
+            getch();
         }
     }
     while(volver == 0);
