@@ -25,6 +25,14 @@ struct solicitudes
     struct solicitudes *next;
 };
 
+struct notificaciones
+{
+    int idUserReceiver;
+    char kind[20];
+    int idUserReminder;
+    struct notificaciones *next;
+};
+
 int validarLogin();
 int registro();
 void leerPassword(char password[]);
@@ -42,6 +50,7 @@ void enviarMensaje();
 
 struct node *start = NULL;
 struct solicitudes *start_solicitudes = NULL;
+struct notificaciones *start_notificaciones = NULL;
 
 int count = 0;
 char current_user_name[20];
@@ -89,7 +98,7 @@ int main()
 
             printf("1.- Contactos\n");
             printf("2.- Mensajes\n");
-            printf("3.- Notificaciones\n");
+            printf("3.- Notificaciones");printf("(");cantidadDeNotificaciones();printf(")\n");
             printf("4.- Mi informacion\n");
             printf("5.- Cerrar sesion\n");
             scanf("%d", &resp);
@@ -333,6 +342,9 @@ void mensajes()
 }
 void notificaciones()
 {
+    system("cls");
+    printf(ANSI_COLOR_CYAN     "-- Notificaciones --"     ANSI_COLOR_RESET "\n");
+    verNotificaciones();
 }
 void cerrarsesion()
 {
@@ -351,6 +363,11 @@ void anadirContacto()
     printf(ANSI_COLOR_CYAN     "-- Agregar contacto --"     ANSI_COLOR_RESET "\n");
     printf("idUnico de usuario a agregar: ");
     scanf("%d", &idNuevoAmigo);
+    if(idNuevoAmigo == current_user_id){
+        printf(ANSI_COLOR_RED "No te puedes agregar a ti mismo" ANSI_COLOR_RESET "\n");
+        getch();
+        return;
+    }
     existe = verificarExistenciaDelContacto(idNuevoAmigo);
     if(existe == 1)
     {
@@ -365,6 +382,7 @@ void anadirContacto()
         if(confirm == 1)
         {
             enviarSolicitud(idNuevoAmigo);
+            crearNotificacion(current_user_id,"solicitud",idNuevoAmigo);
         }
     }
     else
@@ -380,6 +398,13 @@ void verSolicitudes()
 {
     struct solicitudes *t;
     t = start_solicitudes;
+
+    if (t == NULL)
+    {
+        printf(ANSI_COLOR_RED "No hay solicitudes aun" ANSI_COLOR_RESET "\n");
+        getch();
+        return;
+    }
 
     printf(" -- ENVIADAS -- \n");
     while(t->next != NULL){
@@ -468,4 +493,84 @@ void imprimirSolicitud(int idContact) {
         }
         t = t->next;
     }
+}
+
+void imprimirNombre(int IDusr){
+    struct node *t;
+    t = start;
+
+    while(t->next != NULL)
+    {
+        if(t->idUsuario == IDusr)
+        {
+            printf("%s", t->nombre);
+        }
+        t = t->next;
+    }
+}
+
+void crearNotificacion(int idUserReminder, char kind[],int idUserReceiver) {
+    struct notificaciones *t;
+
+    t = (struct notificaciones*)malloc(sizeof(struct notificaciones));
+
+    if (start_notificaciones == NULL)
+    {
+        start_notificaciones = t;
+        start_notificaciones->next = NULL;
+        crearNotificacion(idUserReminder,kind,idUserReceiver);
+        return;
+    }
+    t->idUserReceiver = idUserReceiver;
+    t->idUserReminder = idUserReminder;
+    strcpy(t->kind,kind);
+    t->next = start_notificaciones;
+    start_notificaciones = t;
+}
+
+void verNotificaciones(){
+    struct notificaciones *t;
+    t = start_notificaciones;
+
+    if (t == NULL)
+    {
+        printf(ANSI_COLOR_RED "No hay notificaciones aun" ANSI_COLOR_RESET "\n");
+        getch();
+        return;
+    }
+
+    while(t->next != NULL)
+    {
+        if(t->idUserReceiver == current_user_id){
+            if(strcmp(t->kind,"mensaje") == 0){
+                printf("\n");
+                printf("Tienes un nuevo mensaje de "); imprimirNombre(t->idUserReminder);printf("\n");
+            }else if(strcmp(t->kind,"solicitud") == 0){
+                printf("Tienes una nueva solicitud de "); imprimirNombre(t->idUserReminder);printf("\n");
+            }
+        }
+
+        t = t->next;
+    }
+    getch();
+}
+
+void cantidadDeNotificaciones(){
+    struct notificaciones *t;
+    t = start_notificaciones;
+    int contador = 0;
+    if (t == NULL)
+    {
+        printf("%d",contador);
+        return;
+    }
+    while(t->next != NULL)
+    {
+        if(t->idUserReceiver == current_user_id){
+            contador++;
+        }
+
+        t = t->next;
+    }
+    printf("%d",contador);
 }
