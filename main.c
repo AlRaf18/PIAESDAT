@@ -25,6 +25,13 @@ struct solicitudes
     struct solicitudes *next;
 };
 
+struct contactos
+{
+    int idUser1;
+    int idUser2;
+    struct contactos *next;
+};
+
 struct notificaciones
 {
     int idUserReceiver;
@@ -51,6 +58,7 @@ void enviarMensaje();
 struct node *start = NULL;
 struct solicitudes *start_solicitudes = NULL;
 struct notificaciones *start_notificaciones = NULL;
+struct contactos *start_contactos = NULL;
 
 int count = 0;
 char current_user_name[20];
@@ -58,12 +66,15 @@ int current_user_id;
 
 int main()
 {
+    insert_at_begin(123, 123, "Alfredo");
+    insert_at_begin(234, 234, "Juan");
     int IDusr = 0;
     int resp;
     int salir = 0;
     while(IDusr == 0 && salir == 0)
     {
         system("cls");
+        printf(ANSI_COLOR_RED     "Borrar seeds"     ANSI_COLOR_RESET "\n");
         printf(ANSI_COLOR_CYAN     "-- Bienvenido --"     ANSI_COLOR_RESET "\n");
         printf(" 1.- Iniciar sesion\n");
         printf(" 2.- Registrarse\n");
@@ -98,7 +109,10 @@ int main()
 
             printf("1.- Contactos\n");
             printf("2.- Mensajes\n");
-            printf("3.- Notificaciones");printf("(");cantidadDeNotificaciones();printf(")\n");
+            printf("3.- Notificaciones");
+            printf("(");
+            cantidadDeNotificaciones();
+            printf(")\n");
             printf("4.- Mi informacion\n");
             printf("5.- Cerrar sesion\n");
             scanf("%d", &resp);
@@ -280,7 +294,7 @@ void contactos()
         printf(ANSI_COLOR_CYAN     "-- Contactos --"     ANSI_COLOR_RESET "\n");
         int resp;
         printf("1.- Anadir\n");
-        printf("2.- Eliminar\n");
+        printf("2.- Ver contactos\n");
         printf("3.- Solicitudes\n");
         printf("4.- Volver\n");
         scanf("%d", &resp);
@@ -290,11 +304,13 @@ void contactos()
         }
         else if(resp == 2)
         {
-            eliminarContacto();
+            verContactos();
         }
         else if(resp == 3)
         {
             verSolicitudes();
+            aceptarSolicitudes();
+
         }
         else if(resp == 4)
         {
@@ -363,7 +379,8 @@ void anadirContacto()
     printf(ANSI_COLOR_CYAN     "-- Agregar contacto --"     ANSI_COLOR_RESET "\n");
     printf("idUnico de usuario a agregar: ");
     scanf("%d", &idNuevoAmigo);
-    if(idNuevoAmigo == current_user_id){
+    if(idNuevoAmigo == current_user_id)
+    {
         printf(ANSI_COLOR_RED "No te puedes agregar a ti mismo" ANSI_COLOR_RESET "\n");
         getch();
         return;
@@ -372,6 +389,14 @@ void anadirContacto()
     if(existe == 1)
     {
         system("cls");
+        int repetida;
+        if (validarSolicitudRepetida(idNuevoAmigo) == 0)
+        {
+            printf(ANSI_COLOR_CYAN     "-- Agregar contacto --"     ANSI_COLOR_RESET "\n");
+            printf(ANSI_COLOR_RED "Ya se envio solicitud a este contacto" ANSI_COLOR_RESET "\n");
+            getch();
+            return;
+        };
         printf(ANSI_COLOR_CYAN     "-- Confirmar --"     ANSI_COLOR_RESET "\n");
         verInformacionDelContacto(idNuevoAmigo);
         printf("\n");
@@ -391,9 +416,6 @@ void anadirContacto()
         system("pause");
     }
 }
-void eliminarContacto()
-{
-}
 void verSolicitudes()
 {
     struct solicitudes *t;
@@ -407,9 +429,21 @@ void verSolicitudes()
     }
 
     printf(" -- ENVIADAS -- \n");
-    while(t->next != NULL){
-        if(t->idCurrentUser == current_user_id){
+    while(t->next != NULL)
+    {
+        if(t->idCurrentUser == current_user_id)
+        {
             imprimirSolicitud(t->idContact);
+        }
+        t = t->next;
+    }
+    printf("\n -- RECIBIDAS -- \n");
+    t = start_solicitudes;
+    while(t->next != NULL)
+    {
+        if(t->idContact == current_user_id)
+        {
+            imprimirSolicitud(t->idCurrentUser);
         }
         t = t->next;
     }
@@ -479,7 +513,8 @@ void verInformacionDelContacto(int IDusr)
     }
 }
 
-void imprimirSolicitud(int idContact) {
+void imprimirSolicitud(int idContact)
+{
     struct node *t;
     t = start;
 
@@ -495,7 +530,8 @@ void imprimirSolicitud(int idContact) {
     }
 }
 
-void imprimirNombre(int IDusr){
+void imprimirNombre(int IDusr)
+{
     struct node *t;
     t = start;
 
@@ -509,7 +545,8 @@ void imprimirNombre(int IDusr){
     }
 }
 
-void crearNotificacion(int idUserReminder, char kind[],int idUserReceiver) {
+void crearNotificacion(int idUserReminder, char kind[],int idUserReceiver)
+{
     struct notificaciones *t;
 
     t = (struct notificaciones*)malloc(sizeof(struct notificaciones));
@@ -528,7 +565,8 @@ void crearNotificacion(int idUserReminder, char kind[],int idUserReceiver) {
     start_notificaciones = t;
 }
 
-void verNotificaciones(){
+void verNotificaciones()
+{
     struct notificaciones *t;
     t = start_notificaciones;
 
@@ -541,12 +579,20 @@ void verNotificaciones(){
 
     while(t->next != NULL)
     {
-        if(t->idUserReceiver == current_user_id){
-            if(strcmp(t->kind,"mensaje") == 0){
+        if(t->idUserReceiver == current_user_id)
+        {
+            if(strcmp(t->kind,"mensaje") == 0)
+            {
                 printf("\n");
-                printf("Tienes un nuevo mensaje de "); imprimirNombre(t->idUserReminder);printf("\n");
-            }else if(strcmp(t->kind,"solicitud") == 0){
-                printf("Tienes una nueva solicitud de "); imprimirNombre(t->idUserReminder);printf("\n");
+                printf("Tienes un nuevo mensaje de ");
+                imprimirNombre(t->idUserReminder);
+                printf("\n");
+            }
+            else if(strcmp(t->kind,"solicitud") == 0)
+            {
+                printf("Tienes una nueva solicitud de ");
+                imprimirNombre(t->idUserReminder);
+                printf("\n");
             }
         }
 
@@ -555,7 +601,8 @@ void verNotificaciones(){
     getch();
 }
 
-void cantidadDeNotificaciones(){
+void cantidadDeNotificaciones()
+{
     struct notificaciones *t;
     t = start_notificaciones;
     int contador = 0;
@@ -566,11 +613,112 @@ void cantidadDeNotificaciones(){
     }
     while(t->next != NULL)
     {
-        if(t->idUserReceiver == current_user_id){
+        if(t->idUserReceiver == current_user_id)
+        {
             contador++;
         }
 
         t = t->next;
     }
     printf("%d",contador);
+}
+
+void aceptarSolicitudes()
+{
+    printf("\nQuieres aceptar una solicitud?\n1.- Si\n2.- No");
+    int aceptar = 0;
+    int idNuevoAmigo = 0;
+    printf("\n");
+    scanf("%d",&aceptar);
+    if(aceptar == 1)
+    {
+        printf("Introduce el id del usuario que quieres aceptar: ");
+        scanf("%d",&idNuevoAmigo);
+        if(verificarExistenciaDelContacto(idNuevoAmigo) == 1)
+        {
+            agregarAContactos(idNuevoAmigo);
+        }
+        else
+        {
+            printf(ANSI_COLOR_RED "No existe el contacto" ANSI_COLOR_RESET "\n");
+        }
+
+    }
+}
+
+void agregarAContactos(int idNuevoAmigo)
+{
+    struct contactos *c;
+    c = (struct contactos*)malloc(sizeof(struct contactos));
+    if (start_contactos == NULL)
+    {
+        start_contactos = c;
+        start_contactos->idUser2 = 000;
+        start_contactos->idUser1 = 000;
+        start_contactos->next = NULL;
+        agregarAContactos(idNuevoAmigo);
+
+        return;
+    }
+    c->idUser2 = idNuevoAmigo;
+    c->idUser1 = current_user_id;
+    c->next = start_contactos;
+    start_contactos = c;
+    printf(ANSI_COLOR_GREEN "Amigo anadido" ANSI_COLOR_RESET "\n");
+    getch();
+}
+
+int validarSolicitudRepetida(int idNuevoAmigo)
+{
+    struct solicitudes *t;
+    t = start_solicitudes;
+    int repetido = 0;
+    int no_repetido = 1;
+
+    if(t == NULL)
+    {
+        return no_repetido;
+    }
+
+    while(t->next != NULL)
+    {
+        if(t->idCurrentUser == current_user_id && t->idContact == idNuevoAmigo )
+        {
+            return repetido;
+        }
+        t = t->next;
+    }
+    return no_repetido;
+}
+
+void verContactos()
+{
+    struct contactos *t;
+    t = start_contactos;
+
+    if (t == NULL)
+    {
+        printf(ANSI_COLOR_RED "No hay contactos aun" ANSI_COLOR_RESET "\n");
+        getch();
+        return;
+    }
+
+    while(t->next != NULL)
+    {
+        if(t->idUser1 == current_user_id)
+        {
+            printf("Contacto: ");
+            imprimirNombre(t->idUser2);
+            printf("\n");
+        }
+        if(t->idUser2 == current_user_id)
+        {
+            printf("Contacto: ");
+            imprimirNombre(t->idUser1);
+            printf("\n");
+        }
+
+        t = t->next;
+    }
+    getch();
 }
