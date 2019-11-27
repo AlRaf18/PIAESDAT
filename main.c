@@ -18,12 +18,11 @@ typedef struct node
     struct node *next;
 } usuario;
 
-struct contacto
+struct solicitudes
 {
-    char nombre[20];
     int idCurrentUser;
-    int idUsuarioContacto;
-    struct contacto *next;
+    int idContact;
+    struct solicitudes *next;
 };
 
 int validarLogin();
@@ -42,6 +41,7 @@ void verConversaciones();
 void enviarMensaje();
 
 struct node *start = NULL;
+struct solicitudes *start_solicitudes = NULL;
 
 int count = 0;
 char current_user_name[20];
@@ -90,7 +90,8 @@ int main()
             printf("1.- Contactos\n");
             printf("2.- Mensajes\n");
             printf("3.- Notificaciones\n");
-            printf("4.- Cerrar sesion\n");
+            printf("4.- Mi informacion\n");
+            printf("5.- Cerrar sesion\n");
             scanf("%d", &resp);
             if(resp == 1)
             {
@@ -105,6 +106,11 @@ int main()
                 notificaciones();
             }
             else if(resp == 4)
+            {
+                verInformacionDelContacto(current_user_id);
+                getch();
+            }
+            else if(resp == 5)
             {
                 cerrarsesion();
                 IDusr = 0;
@@ -239,7 +245,6 @@ void insert_at_begin(int id, int password, char nombre[20])
     printf(ANSI_COLOR_GREEN     "Registro exitoso"     ANSI_COLOR_RESET "\n");
 }
 
-
 void setCurrentUser(int id)
 {
     struct node *t;
@@ -339,16 +344,128 @@ void cerrarsesion()
 
 void anadirContacto()
 {
+    system("cls");
+    int idNuevoAmigo;
+    int existe;
+    int confirm;
+    printf(ANSI_COLOR_CYAN     "-- Agregar contacto --"     ANSI_COLOR_RESET "\n");
+    printf("idUnico de usuario a agregar: ");
+    scanf("%d", &idNuevoAmigo);
+    existe = verificarExistenciaDelContacto(idNuevoAmigo);
+    if(existe == 1)
+    {
+        system("cls");
+        printf(ANSI_COLOR_CYAN     "-- Confirmar --"     ANSI_COLOR_RESET "\n");
+        verInformacionDelContacto(idNuevoAmigo);
+        printf("\n");
+        printf(ANSI_COLOR_MAGENTA "Enviar solicitud a este contacto?" ANSI_COLOR_RESET "\n");
+        printf("1.- Si, enviar\n");
+        printf("2.- Cancelar\n");
+        scanf("%d", &confirm);
+        if(confirm == 1)
+        {
+            enviarSolicitud(idNuevoAmigo);
+        }
+    }
+    else
+    {
+        printf(ANSI_COLOR_RED "No existe el contacto" ANSI_COLOR_RESET "\n");
+        system("pause");
+    }
 }
 void eliminarContacto()
 {
 }
 void verSolicitudes()
 {
+    struct solicitudes *t;
+    t = start_solicitudes;
+
+    printf(" -- ENVIADAS -- \n");
+    while(t->next != NULL){
+        if(t->idCurrentUser == current_user_id){
+            imprimirSolicitud(t->idContact);
+        }
+        t = t->next;
+    }
+    getch();
 }
 void verConversaciones()
 {
 }
 void enviarMensaje()
 {
+}
+
+int verificarExistenciaDelContacto(int IDusr)
+{
+    int existe = 1, no_existe = 0;
+
+    struct node *t;
+    t = start;
+    while(t->next != NULL)
+    {
+        if(t->idUsuario == IDusr)
+        {
+            return existe;
+        }
+        t = t->next;
+    }
+    return no_existe;
+}
+
+void enviarSolicitud(int idNuevoAmigo)
+{
+    struct solicitudes *s;
+
+    s = (struct solicitudes*)malloc(sizeof(struct solicitudes));
+
+    if (start_solicitudes == NULL)
+    {
+        start_solicitudes = s;
+        start_solicitudes->idContact = 000;
+        start_solicitudes->idCurrentUser = current_user_id;
+        start_solicitudes->next = NULL;
+        enviarSolicitud(idNuevoAmigo);
+        return;
+    }
+    s->idContact = idNuevoAmigo;
+    s->idCurrentUser = current_user_id;
+    s->next = start_solicitudes;
+    start_solicitudes = s;
+
+    printf(ANSI_COLOR_GREEN "Solicitud enviada exitosamente" ANSI_COLOR_RESET "\n");
+    getch();
+}
+
+void verInformacionDelContacto(int IDusr)
+{
+    struct node *t;
+    t = start;
+    while(t->next != NULL)
+    {
+        if(t->idUsuario == IDusr)
+        {
+            printf("ID de usuario: %d\n", t->idUsuario);
+            printf("Nombre: %s\n", t->nombre);
+            printf("ID de trabajador: %d\n", t->idTrabajador);
+        }
+        t = t->next;
+    }
+}
+
+void imprimirSolicitud(int idContact) {
+    struct node *t;
+    t = start;
+
+    while(t->next != NULL)
+    {
+        if(t->idUsuario == idContact)
+        {
+            printf("\n");
+            printf("%d \t %s \t", t->idUsuario, t->nombre);
+            printf(ANSI_COLOR_YELLOW "Pendiente" ANSI_COLOR_RESET);
+        }
+        t = t->next;
+    }
 }
