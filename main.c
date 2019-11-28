@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <conio.h>
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
@@ -32,6 +34,14 @@ struct contactos
     struct contactos *next;
 };
 
+struct mensajes
+{
+	int idCurrentUser;
+	int idContact;
+	char mensaje[100];
+	struct mensajes *next;
+};
+
 struct notificaciones
 {
     int idUserReceiver;
@@ -59,6 +69,7 @@ struct node *start = NULL;
 struct solicitudes *start_solicitudes = NULL;
 struct notificaciones *start_notificaciones = NULL;
 struct contactos *start_contactos = NULL;
+struct mensajes *start_mensajes = NULL;
 
 int count = 0;
 char current_user_name[20];
@@ -66,15 +77,12 @@ int current_user_id;
 
 int main()
 {
-    insert_at_begin(123, 123, "Alfredo");
-    insert_at_begin(234, 234, "Juan");
     int IDusr = 0;
     int resp;
     int salir = 0;
     while(IDusr == 0 && salir == 0)
     {
         system("cls");
-        printf(ANSI_COLOR_RED     "Borrar seeds"     ANSI_COLOR_RESET "\n");
         printf(ANSI_COLOR_CYAN     "-- Bienvenido --"     ANSI_COLOR_RESET "\n");
         printf(" 1.- Iniciar sesion\n");
         printf(" 2.- Registrarse\n");
@@ -332,16 +340,30 @@ void mensajes()
         system("cls");
         printf(ANSI_COLOR_CYAN     "-- Mensajes --"     ANSI_COLOR_RESET "\n");
         int resp;
+        int idNuevoMensaje;
+        char mensaje[100];
         printf("1.- Enviar\n");
         printf("2.- Conversaciones\n");
         printf("3.- Volver\n");
         scanf("%d", &resp);
         if(resp == 1)
         {
-            enviarMensaje();
+            system("cls");
+        	printf(ANSI_COLOR_CYAN     "-- Enviar Mensaje --"     ANSI_COLOR_RESET "\n");
+        	printf("idUnico de usuario a mensajear: ");
+    		scanf("%d", &idNuevoMensaje);
+    		printf("Mensaje: ");
+    		fflush(stdin);
+    		gets(mensaje);
+    		fflush(stdin);
+    		printf("\n");
+            enviarMensaje(idNuevoMensaje, mensaje);
+            crearNotificacion(current_user_id,"mensaje",idNuevoMensaje);
         }
         else if(resp == 2)
         {
+            system("cls");
+        	printf(ANSI_COLOR_CYAN     "-- Conversaciones --"     ANSI_COLOR_RESET "\n");
             verConversaciones();
         }
         else if(resp == 3)
@@ -451,9 +473,41 @@ void verSolicitudes()
 }
 void verConversaciones()
 {
+    struct mensajes *m;
+	m = start_mensajes;
+
+	if(m == NULL)
+	{
+		printf(ANSI_COLOR_RED "No hay mensajes aun" ANSI_COLOR_RESET "\n");
+        getch();
+        return;
+	}
+
+	imprimirMensaje();
+	getch();
 }
-void enviarMensaje()
+void enviarMensaje(int idNuevoMensaje, char mensaje[100])
 {
+    struct mensajes *m;
+	m = ( struct mensajes*)malloc(sizeof(struct mensajes));
+
+	if ( start_mensajes == NULL)
+	{
+		start_mensajes = m;
+		start_mensajes->idContact = 000;
+		start_mensajes->idCurrentUser = current_user_id;
+		start_mensajes->next = NULL;
+		enviarMensaje(idNuevoMensaje, mensaje);
+		return;
+	}
+	m->idContact = idNuevoMensaje;
+	m->idCurrentUser = current_user_id;
+	strcpy(m->mensaje,mensaje);
+	m->next = start_mensajes;
+	start_mensajes = m;
+
+	printf(ANSI_COLOR_GREEN "Mensaje Enviado" ANSI_COLOR_RESET "\n");
+    getch();
 }
 
 int verificarExistenciaDelContacto(int IDusr)
@@ -721,4 +775,19 @@ void verContactos()
         t = t->next;
     }
     getch();
+}
+void imprimirMensaje()
+{
+	struct mensajes *m;
+	m = start_mensajes;
+
+	while(m->next != NULL)
+	{
+		if(m->idContact == current_user_id || m->idCurrentUser == current_user_id )
+		{
+			printf("\n");
+			printf("%d\t", m->idContact); imprimirNombre(m->idContact); printf("\t%s",m->mensaje);
+		}
+		m = m->next;
+	}
 }
